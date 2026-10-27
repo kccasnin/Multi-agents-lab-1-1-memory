@@ -22,8 +22,29 @@ def chat(user_input: str, window: SlidingWindowBuffer) -> str:
       5. Call window.add() to add the assistant reply to the sliding window.
       6. Return the reply string.
     """
-    # TODO: implement
-    raise NotImplementedError
+    # Step 1: Save user input to long term memory
+    memory_id = store_memory(user_input)
+
+    # Step 2: Add the user turn to the sliding window
+    window.add("user", user_input)
+
+    # Step 3: Assemble the full message list for the OpenAI API call
+    messages = build_context(user_input, window)
+
+    # Step 4: Call the OpenAI API with the assembled messages
+    response = client.chat.completions.create(
+        model=MODEL,
+        messages=messages
+    )
+
+    # Get the assistant's reply from the API response
+    assistant_reply = response['choices'][0]['message']['content']
+
+    # Step 5: Add the assistant reply to the sliding window
+    window.add("assistant", assistant_reply)
+
+    # Step 6: Return the reply string
+    return assistant_reply
 
 
 def main():
